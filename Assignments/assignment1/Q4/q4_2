@@ -1,0 +1,10 @@
+4.2. You are getting 502 Bad Gateway error while browsing to one of the production websites. What is your approach to troubleshoot and fix this issue?
+
+5XX errors generally comes from loadbalancers/servers(nginx/httpd/etc).
+
+We can check for below things
+
+1. Check if dns is resolving to correct LB
+2. LB is getting proper response from backend servers
+3. iptables rules (if particular IPs or ports are blocked)
+4.

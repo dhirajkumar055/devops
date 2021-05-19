@@ -1,0 +1,11 @@
+4.1. You are receiving a high amount of traffic and suddenly you are getting below error. What do you do? What is your assumption about the error? What will you do to troubleshoot it?
+/var/log/kern.log:Jul  6 07:10:58 Prod-Server-3 kernel: [776470.473478] Out of memory: Kill process 1596 (thread_pool.rb*) score 536 or sacrifice child.
+
+
+Preffered Approach from my side will be:
+
+1. Check for available RAM (free -h)
+2. Check for inodes of file-systems (df -ikh)
+3. Check for other logs in /var/log/messages or using dmesg at the same timestamp
+4. Check for proper allocation of resources to VMs, I had faced similar issues when host machine (virtualbox) had allocated more RAM to VMs and to hostmachine itself no RAM was left.
+5. Check If process 1596 is still running, if running get more details using ps -ef |grep 1596 for this process
