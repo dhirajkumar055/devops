@@ -1,0 +1,5 @@
+---
+version: 10.1.0-M2
+TomcatDirectory: /home/ubuntu/tomcat
+SourceURL: https://downloads.apache.org/tomcat/tomcat-10/v{{ version }}/bin/apache-tomcat-{{ version }}.tar.gz
+# defaults file for installTomcat

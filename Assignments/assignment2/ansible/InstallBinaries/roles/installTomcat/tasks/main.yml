@@ -1,0 +1,26 @@
+---
+- name: Install Java
+  apt:
+    name: openjdk-8-jdk
+    state: present
+
+- name: Create Folder
+  file:
+    path: "{{ TomcatDirectory }}"
+    state: directory
+    mode: 0755
+    owner: ubuntu
+    group: ubuntu
+
+- name: Download Tomcat
+  get_url:
+    url: "{{ SourceURL }}"
+    dest: "{{ TomcatDirectory }}"
+
+- name: Extract Archive
+  unarchive:
+    src: "{{ TomcatDirectory }}/apache-tomcat-{{ version }}.tar.gz"
+    dest: "{{ TomcatDirectory }}"
+
+- name: Start Tomcat
+  shell: "{{ TomcatDirectory }}/apache-tomcat-{{ version }}/bin/startup.sh"

@@ -1,0 +1,9 @@
+1. Update your IP in file createSecurityGroup.tf
+2. Update the secret_key and access_key in file variables.tf 
+3. Update the image_id you want to use in createLaunchConfiguration.tf
+4. Update the key_name if you want to login to your instances in createLaunchConfiguration.tf
+
+Commands
+terraform init
+terraform plan
+terraform apply
