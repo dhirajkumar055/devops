@@ -1,2 +1,25 @@
 ---
-# tasks file for installScyllaDB
+- name: Install Java
+  apt:
+    name: openjdk-8-jre-headless 
+    state: present
+
+- name: Add Key
+  apt_key:
+    keyserver: hkp://keyserver.ubuntu.com:80
+    id: 5e08fbd8b5d6ec9c 
+
+- name: "Download file"
+  get_url:
+    url: http://downloads.scylladb.com/deb/ubuntu/scylla-{{ version }}-{{ lsbrelease }}.list 
+    dest: /etc/apt/sources.list.d/scylla.list 
+
+- name: Install Scylla
+  apt:
+    name: scylla 
+    state: present
+
+- name: Start service scylla-server, if not started
+  ansible.builtin.service:
+    name: scylla-server
+    state: started

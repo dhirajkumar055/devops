@@ -1,2 +1,4 @@
 ---
+lsbrelease: "{{ lookup('pipe', 'lsb_release -s -c') }}"
+version: "4.4"
 # defaults file for installScyllaDB
