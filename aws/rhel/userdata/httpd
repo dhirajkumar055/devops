@@ -1,0 +1,20 @@
+#!/bin/bash
+
+sudo yum install -y httpd
+cd /var/www/html/
+sudo touch index.html
+sudo chmod 777 index.html
+
+echo "Private IP : " >index.html
+hostname -i >> index.html
+
+echo "<br>" >> index.html
+
+echo "FQDN : " >>index.html 
+hostname >>index.html
+
+echo "<br>" >>index.html
+
+sudo systemctl start httpd
+
+echo ""
