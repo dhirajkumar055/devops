@@ -1,0 +1,168 @@
+How is resident memory changing per second based on past hour?
+deriv(process_resident_memory_bytes[1h])
+
+How much free memory will be there in next 2 hours based on last 1hour?
+predict_linear(node_memory_MemFree_bytes[1h],2*60*60)/1024/1024
+
+Aggregation functions always applied to instant vectors.
+
+To perform Aggregation functions on range vectors append _over_time like sum_over_time
+max_over_time(node_cpu_seconds_total[1h])
+
+Time process has been running since
+(time() - process_start_time_seconds)/60/60
+
+day_of_week()
+day_of_month()
+
+Q. Which vector contains a single sample value for each time series all sharing the same timestamps?
+Range vector
+Scalar vector
+String vector
+Instant vector
+
+Q. Which PromQL function predicts the value of time series t seconds from now, based on the range vector v?
+deriv
+changes
+<aggregation>_over_time
+predict_linear
+
+Q. Logical operators can be defined between
+scaler/scaler and vector/vector
+scaler/vector
+instant vector only - Solution
+scaler vector only
+scaler/scaler, vector/scaler, vector/vector
+
+Q. What function will you apply to calculate the average of a range vector
+avg()
+avg_over_time()
+avg_time()
+avg_over()
+
+Q. rate() function is primarily used with which type of metrics
+gauze
+counter - Solution
+histogram
+summary
+
+Quantiles
+each of any set of values of a variate which divide a frequency distribution into equal groups, each containing the same fraction of the total population.
+
+avg without(cpu)(rate(node_cpu_seconds_total{mode="idle"}[5m]))
+
+Reload configurations with running prometheus
+/-/reload
+
+./prometheus -web.enable-l ifecycle
+
+Recording Rule:
+groups:
+  - name: my-rule
+    rules:
+      - record: job:node_cpu_seconds:avg_idle 
+        expr: avg without(cpu)(rate(node_cpu_seconds_total{mode="idle"}[5m]))
+      
+      - alert: NodeExporterDown
+        expr: up(job="node_exporter")=="0"
+        for: 1m
+
+      - record: job:app_response_latency_seconds:rate1m
+        expr: rate(app_response_latency_seconds_sum[1m]/rate(app_response_latency_seconds_count[1m]))
+      
+      - aleart: AppLatencyAbove5sec
+        expr: job:app_response_latency_seconds:rate1m >=5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summay: 'Python app latency is over 5 seconds'
+          description: 'app latency of instance: {{$labels.instance}} of job {{@labels.job}} is {{$value}} for more then 5 minutes'
+          app_link: 'http://localhost:8000'
+
+      - aleart: AppLatencyAbove2sec
+        expr: 2 < job:app_response_latency_seconds:rate1m < 5
+        for: 2m
+        labels:
+          severity: warning
+
+./promtool check rules rules/myrule.yaml 
+
+route:
+  receiver: admin
+
+receivers:
+- name: admin
+  email_configs:
+  - to: "asdlfs@gami.co"
+    from: "asldf@adl.co"
+    smarthost: smtp.gmail.com:587
+    auth_username: 'asldf@adl.co'
+    auth_identity: 'asldf@adl.co'
+    auth_password: '1234567890123456'
+
+
+dynamic targets
+- job: 'ec2'
+  ec2_sd_configs:
+    - access_key: sldkfsdfaskehdi
+      security_key: sdfasdkbucxinekjlfdsn
+      region: ap-south-1
+  relabel_configs:
+    - source_labels: [__meta_ec2_public_ip]
+      regex: '(.*)'
+      replacement: '${1}:9100'
+      target_label: __address__
+
+keep or drop
+- job: 'node_exporter'
+  file_sd_configs:
+    - files:
+      - file_sd.yml
+  relabel_configs:
+    - source_labels: [team]
+      regex: development|l1
+      action: keep
+
+- job: 'node_exporter'
+  file_sd_configs:
+    - files:
+      - file_sd.yml
+  relabel_configs:
+    - source_labels: [team]
+      regex: development|l1
+      action: drop
+
+
+localhost:port/api/v1/query?query=up
+localhost:port/api/v1/targets
+localhost:port/api/v1/targets?state=active
+localhost:port/api/v1/targets?state=dropped
+localhost:port/api/v1/rules
+localhost:port/api/v1/rules?type=alert
+localhost:port/api/v1/alerts
+localhost:port/api/v1/status/runtimeinfo
+localhost:port/api/v1/status/buildinfo
+ 
+
+In alertmanager.yml groupby is used to send mails depending upon the groups.
+
+Throttling means to control the flow of something.
+group_wait: wait for initial notification to come and send single mail of alerts
+group_interval: time to wait for next group notification
+
+repeat_interval: 
+
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['app_type','category']
+
+Inhibit alerts are muted at alertmanager, these will be in firing state in prometheus.
+
+What is false positive?
+
+Silencing or maintenance can be applied at alertmanager GUI
+
