@@ -1,0 +1,217 @@
+var xhr = new XMLHttpRequest();
+xhr.open('POST','https://mvcwg7q0z2.execute-api.us-east-1.amazonaws.com/dummyDeplooy/question');
+xhr.onreadystatechange = function(event){
+  console.log(event.target.response);
+}
+xhr.send();
+
+var xhr = new XMLHttpRequest();
+xhr.open('POST','https://mvcwg7q0z2.execute-api.us-east-1.amazonaws.com/dummyDeplooy/question');
+xhr.onreadystatechange = function(event){
+  console.log(event.target.response);
+}
+xhr.setRequestHeader('Content-Type','application/json');
+xhr.send(JSON.stringify({age: 43, height: 43, income: 435}));
+
+var xhr = new XMLHttpRequest();
+xhr.open('DELETE','https://mvcwg7q0z2.execute-api.us-east-1.amazonaws.com/dummyDeplooy/question');
+xhr.onreadystatechange = function(event){
+  console.log(event.target.response);
+}
+xhr.setRequestHeader('Content-Type','application/json');
+xhr.send();
+
+var xhr = new XMLHttpRequest();
+xhr.open('GET','https://mvcwg7q0z2.execute-api.us-east-1.amazonaws.com/dummyDeplooy/question/all/');
+xhr.onreadystatechange = function(event){
+  console.log(event.target.response);
+}
+xhr.setRequestHeader('Content-Type','application/json');
+xhr.send();
+
+exports.handler = async (event,context,callback) => {
+    const type=event.type;
+    if(type === 'all'){
+        callback(null,"if");
+    }else if(type === 'single'){
+        callback(null,"elif");
+    }else{
+        callback(null,"Else");
+    }
+};
+
+Create entry in dynamodb
+const AWS = require('aws-sdk');
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+exports.handler = async (event) => {
+    
+    const params = {
+      TableName : 'dummytable',
+      Item: {
+         id: event.id,
+         price: event.price,
+         "UserId": "User"+Math.random()
+      }
+    }
+    
+    async function createItem(){
+      try {
+        await docClient.put(params).promise();
+      } catch (err) {
+        return err;
+      }
+    }
+    
+  try {
+    await createItem()
+    return { body: 'Successfully created item!' }
+  } catch (err) {
+    return { error: err }
+  }
+};
+
+POST -> Integration Request -> Mapping Template
+#set($inputRoot = $input.path('$'))
+{
+  "id" : "$inputRoot.id",
+  "price" : "$inputRood.price",
+  "income" : 42
+}
+
+var xhr = new XMLHttpRequest();
+xhr.open('DELETE','https://mvcwg7q0z2.execute-api.us-east-1.amazonaws.com/dummyDeplooy/question');
+xhr.onreadystatechange = function(event){
+  console.log(event.target.response);
+}
+xhr.setRequestHeader('Content-Type','application/json');
+xhr.send(JSON.stringify({"id": 26,"price": 78}));
+
+Model Schemas:
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "CompareData",
+  "type": "object",
+  "properties": {
+    "age": {"type": "integer"},
+    "height": {"type": "integer"},
+    "income": {"type": "integer"}
+  },
+  "required": ["age", "height", "income"]
+}
+
+Get from dynamodb
+const AWS = require('aws-sdk');
+const docClient = new AWS.DynamoDB.DocumentClient();
+
+const params = {
+  TableName : 'dummytable',
+  /* Item properties will depend on your application concerns */
+  Key: {
+    UserId: 'User'
+  }
+}
+
+async function getItem(){
+  try {
+    const data = await docClient.get(params).promise()
+    return data
+  } catch (err) {
+    return err
+  }
+}
+
+exports.handler = async (event, context) => {
+  try {
+    const data = await getItem()
+    return { body: data }
+  } catch (err) {
+    return { error: err }
+  }
+}
+
+#set($inputRoot = $input.path('$'))[
+#foreach($elem in $inputRoot){
+ "age": $elem.age,
+ "height": $elem.height,
+ "income": $elem.income
+}
+#if($foreach.hasNext),#end
+#end
+]
+
+Method Request: Only valid requests can pass through it.
+
+Custom Authorizers -> Lambda Function -> returns Dynamic IAM policy and Princial or User Id-> 
+
+Lambda
+exports.handler=(event,context,callback) => {
+  const token = event.authorizationToken;
+  if (token === 'allow'){
+    const policy=genPolicy('allow', event.methodArn);
+    const pricipalId='asdfalsfjalsdf';
+    const context = {
+      simpleAuth: true
+    };
+    const response = {
+      principalId:  principalId,
+      policyDocument: policy,
+      context: context
+    }
+    callback(null,response);
+  }else if (token === 'deny' ){
+    const policy=genPolicy('deny', event.methodArn);
+    const pricipalId='asdfalsfjalsdf';
+    const context = {
+      simpleAuth: true
+    };
+    const response = {
+      principalId:  principalId,
+      policyDocument: policy,
+      context: context
+    }
+    callback(null,response);
+  } else{
+    callback('Unauthorized');
+  }
+}
+function genPolicy(effect,resource){
+  const policy = {};
+  policy.Version = '2012-10-17'
+  policy.Statement = [];
+  const stmt = {};
+  stmt.Action = 'execute-api:Invoke';
+  stmt.Effect = effect;
+  stmt.Resource = resource;
+  policy.Statement.push(stmt);
+}
+
+Some users may see an updated UI for the API Gateway Authorizer creation. 
+
+There, you should just enter "Authorization"  into the "Token Source"  field, NOT method.request.headers.Authorization . Otherwise, you will get a 401 error.
+
+serverless is a framework to lambda functions and deploy it to api-gateway using cli.
+Alternative is cloudformation.
+Swagger:Helps in api Development and Documentation at scale.
+
+https://github.com/localstack/localstack
+LocalStack is a cloud service emulator that runs in a single container on your laptop or in your CI environment. With LocalStack, you can run your AWS applications or Lambdas entirely on your local machine without connecting to a remote cloud provider! Whether you are testing complex CDK applications or Terraform configurations, or just beginning to learn about AWS services, LocalStack helps speed up and simplify your testing and development workflow.
+
+SNS - Notification
+SQS - Queue
+SES - Email
+Step Functions : Orchestrate lamda functions
+Kinesis - Stream Data
+IAM Access Control
+Cloudwatch
+CodeBuild
+Codepipeline
+
+AWS SNS: https://aws.amazon.com/sns/
+AWS SES: https://aws.amazon.com/ses/
+AWS SQS: https://aws.amazon.com/sqs/
+AWS Step Functions: https://aws.amazon.com/step-functions/
+AWS Kinesis: https://aws.amazon.com/kinesis/
+AWS CloudWatch: https://aws.amazon.com/cloudwatch/
+AWS CodeBuild: https://aws.amazon.com/codebuild/
+AWS CodePipeline: https://aws.amazon.com/codepipeline
