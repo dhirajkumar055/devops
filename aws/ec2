@@ -1,0 +1,3 @@
+Role can be assigned during creation of EC2 instance.
+Cannot assign role running instances
+
