@@ -1,3 +1,12 @@
 export LB_NAME=$(kubectl get svc frontend -n workshop -o jsonpath="{.status.loadBalancer.ingress[*].hostname}") 
 echo $LB_NAME
 -----
+kubectl -n workshop get deployment frontend -o yaml | yq '.spec.template.spec.containers[].resources'
+kubectl -n workshop get pod -l app=frontend -o yaml | yq '.items.[].spec.containers[].resources'
+kubectl -n workshop rollout restart deploy frontend
+kubectl -n workshop rollout status deploy frontend
+kubectl -n workshop get events --sort-by='.metadata.creationTimestamp'
+kubectl -n workshop get deployment proddetail -o yaml | yq '.status'
+kubectl -n workshop get resourcequota mem-cpu-quota -o yaml | yq '.status'
+kubectl -n workshop create resourcequota object-quota --hard=pods=4,services=3
+kubectl -n workshop get resourcequota object-quota -o yaml | yq '.status'
