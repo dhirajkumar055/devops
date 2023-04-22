@@ -1,0 +1,11 @@
+Install
+curl -sSL https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+
+Use the dry-run flag to test templates, Confirm that the values created by the template look correct.
+helm install --debug --dry-run workshop /path/to/helm-chart/
+
+If everything looks good
+helm install workshop /path/to/helm-chart/
+
+helm list
