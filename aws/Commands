@@ -1,0 +1,47 @@
+aws iam create-user --user-name prod-username
+aws iam create-access-key --user-name prod-username | tee /tmp/create_output.json
+
+
+# To make it easy to switch back and forth between the admin user you created the cluster with, and this new rbac-user, run the following command to create a script that when sourced, sets the active user to be rbac-user
+export AWS_SECRET_ACCESS_KEY=$(jq -r .AccessKey.SecretAccessKey /tmp/create_output.json)
+export AWS_ACCESS_KEY_ID=$(jq -r .AccessKey.AccessKeyId /tmp/create_output.json)
+
+Map User to K8S
+eksctl create iamidentitymapping \
+  --cluster clustername \
+  --arn arn:aws:iam::${ACCOUNT_ID}:user/prod-username \
+  --username prod-username
+  
+kubectl describe cm aws-auth -n kube-system 
+
+aws sts get-caller-identity
+
+unset AWS_SECRET_ACCESS_KEY
+unset AWS_ACCESS_KEY_ID
+
+aws iam delete-access-key --user-name=prod-username --access-key-id=$(jq -r .AccessKey.AccessKeyId /tmp/create_output.json)
+aws iam delete-user --user-name prod-username
+rm /tmp/create_output.json
+
+IAM OIDC provider for your cluster
+aws eks describe-cluster --name eksworkshop-eksctl --query cluster.identity.oidc.issuer --output text
+
+Create an IAM OIDC provider for your cluster
+eksctl utils associate-iam-oidc-provider --cluster eksworkshop-eksctl --approve
+
+List Policies
+aws iam list-policies --query 'Policies[?PolicyName==`AmazonS3ReadOnlyAccess`].Arn'
+
+eksctl create iamserviceaccount \
+    --name iam-test \
+    --namespace workshop \
+    --cluster eksworkshop-eksctl \
+    --attach-policy-arn arn\:aws\:iam::aws\:policy/AmazonS3ReadOnlyAccess \
+    --approve \
+    --override-existing-serviceaccounts
+
+K8S
+A LimitRange is a policy to constrain the resource allocations (limits and requests) that you can apply for each object, such as Pods or PersistentStorageClaims in a Namespace.
+
+
+
