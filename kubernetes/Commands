@@ -76,3 +76,27 @@ done
 
 eksctl utils describe-addon-versions --kubernetes-version 1.24 | grep AddonName
 
+kubectl describe storageclass mysql-gp2
+kubectl -n workshop run mysql-client --image=mysql:5.7 -i --rm --restart=Never --\
+  mysql -h mysql-0.mysql.workshop <<EOF
+CREATE DATABASE dev;
+CREATE TABLE dev.product (prodId VARCHAR(120), prodName VARCHAR(120));
+INSERT INTO dev.product (prodId,prodName) VALUES ('999','Mountain Bike');
+EOF
+
+kubectl -n workshop run mysql-client --image=mysql:5.7 -it --rm --restart=Never --\
+  mysql -h mysql-read -e "SELECT * FROM dev.product"
+
+kubectl -n workshop patch pv ${pv} -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+
+kubectl patch pv ${pv} -p '{"spec":{"persistentVolumeReclaimPolicy":"Delete"}}'
+unset pv
+
+kubectl -n workshop exec mysql-1 -c mysql -- sh -c 'echo "#!/bin/sh" >> /mysql;echo "exit 1" >> /mysql;chmod +x /mysql;cp /usr/bin/mysql /usr/bin/mysql.off;cp /mysql /usr/bin/mysql;'
+
+We can use AWS Secrets Manager  to store our secrets and the secrets stored in AWS Secrets Manager  can be mounted as volumes in EKS pods using the AWS Secrets and Configuration Provider (ASCP)  for Kubernetes Secrets Store CSI Driver .
+
+aws secretsmanager create-secret \
+--name DBSecret_eksworkshop \
+--description "MYSQL DB Secret." \
+--secret-string "{\"username\":\"root\",\"password\":\"test1234\"}"
