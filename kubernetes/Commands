@@ -10,3 +10,69 @@ kubectl -n workshop get deployment proddetail -o yaml | yq '.status'
 kubectl -n workshop get resourcequota mem-cpu-quota -o yaml | yq '.status'
 kubectl -n workshop create resourcequota object-quota --hard=pods=4,services=3
 kubectl -n workshop get resourcequota object-quota -o yaml | yq '.status'
+
+Check the username that's running the Pod.
+kubectl -n workshop exec -ti $(kubectl get pods -n workshop -l app=frontend -o name) -- whoami
+
+Configuring Restricted Profile
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      privileged: false
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1000
+
+kubectl describe deployment proddetail -n workshop | grep Replicas: 
+
+CloudWatch logging for EKS control plane is not enabled by default due to data ingestion and storage costs. You can enable using below command.
+
+eksctl utils update-cluster-logging \
+    --enable-types all \
+    --region ${AWS_REGION} \
+    --cluster eksworkshop-eksctl \
+    --approve
+
+ADOT  (AWS Distro for Open Telemetry), AMP  (Amazon Managed service for Prometheus) and AMG  (Amazon Managed service for Grafana).
+
+export EKS_CLUSTER_NAME=`eksctl get cluster|awk '{print $1}'|tail -1`
+export AWS_REGION=`eksctl get cluster|awk '{print $2}'|tail -1`
+export ACCOUNT_ID=`aws sts get-caller-identity|grep "Arn"|cut -d':' -f6`
+
+aws amp create-workspace --alias adot-eks --tags env=workshop
+
+aws eks create-addon --addon-name adot --addon-version v0.45.0-eksbuild.1 --cluster-name $EKS_CLUSTER_NAME
+aws eks describe-addon --addon-name adot --cluster-name $EKS_CLUSTER_NAME | jq .addon.status
+pip install awscurl
+awscurl --service="aps" --region=$AWS_REGION  "${AMP_ENDPOINT_URL}api/v1/query?query=scrape_samples_scraped"
+
+CLUSTER_NAME=eksworkshop-eksctl
+VPC_ID=$(aws eks describe-cluster --name $CLUSTER_NAME --query "cluster.resourcesVpcConfig.vpcId" --output text)
+CIDR_BLOCK=$(aws ec2 describe-vpcs --vpc-ids $VPC_ID --query "Vpcs[].CidrBlock" --output text)
+MOUNT_TARGET_GROUP_NAME="eks-efs-group"
+MOUNT_TARGET_GROUP_DESC="NFS access to EFS from EKS worker nodes"
+MOUNT_TARGET_GROUP_ID=$(aws ec2 create-security-group --group-name $MOUNT_TARGET_GROUP_NAME --description "$MOUNT_TARGET_GROUP_DESC" --vpc-id $VPC_ID | jq --raw-output '.GroupId')
+aws ec2 authorize-security-group-ingress --group-id $MOUNT_TARGET_GROUP_ID --protocol tcp --port 2049 --cidr $CIDR_BLOCK
+FILE_SYSTEM_ID=$(aws efs create-file-system | jq --raw-output '.FileSystemId')
+TAG1=tag\:alpha.eksctl.io/cluster-name
+TAG2=tag\:kubernetes.io/role/elb
+subnets=($(aws ec2 describe-subnets --filters "Name=$TAG1,Values=$CLUSTER_NAME" "Name=$TAG2,Values=1" | jq --raw-output '.Subnets[].SubnetId'))
+for subnet in ${subnets[@]}
+do
+    echo "creating mount target in " $subnet
+    aws efs create-mount-target --file-system-id $FILE_SYSTEM_ID --subnet-id $subnet --security-groups $MOUNT_TARGET_GROUP_ID
+done
+aws efs describe-mount-targets --file-system-id $FILE_SYSTEM_ID | jq --raw-output '.MountTargets[].LifeCycleState'
+
+FILE_SYSTEM_ID=$(aws efs describe-file-systems | jq --raw-output '.FileSystems[].FileSystemId')
+targets=$(aws efs describe-mount-targets --file-system-id $FILE_SYSTEM_ID | jq --raw-output '.MountTargets[].MountTargetId')
+for target in ${targets[@]}
+do
+    echo "deleting mount target " $target
+    aws efs delete-mount-target --mount-target-id $target
+done
+
+eksctl utils describe-addon-versions --kubernetes-version 1.24 | grep AddonName
+
