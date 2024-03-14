@@ -1,1 +1,8 @@
+How to create read only user?
+\du - to check users list
+create user read_only_username with encrypted password 'password';
+grant pg_read_all_data  to postgres_read;
 
+Other Grants if required
+grant usage on schema public to read_only_username;
+alter default privileges in schema public grant select on tables to postgres_read;
