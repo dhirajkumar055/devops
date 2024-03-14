@@ -1,0 +1,8 @@
+How do you decide which type of database to use?
+There are hundreds or even thousands of databases available today, such as Oracle, MySQL, MariaDB, SQLite, PostgreSQL, Redis, ClickHouse, MongoDB, S3, Ceph, etc. How do you select the architecture for your system? My short summary is as follows:
+🔹Relational database. Almost anything could be solved by them. - Payment System, Booking System etc.
+🔹In-memory store. Their speed and limited data size make them ideal for fast operations. - Flash sale In-memory cache
+🔹Time-series database. Store and manage time-stamped data. - Stock market data, Trading platform, Stock exchange, Ads real time bidding
+🔹Graph database. It is suitable for complex relationships between unstructured objects. - Social relations, Anti Money laundring, Machine Learning etc.
+🔹Document store. They are good for large immutable data. - File, Audio, Video, Picture etc
+🔹Wide column store. They are usually used for big data, analytics, reporting, etc., which needs denormalized data. - Reporting Bussiness Intelligence.
