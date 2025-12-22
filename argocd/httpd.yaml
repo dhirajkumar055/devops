@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deployment
+  labels:
+    app: httpd-app
+spec:
+  replicas: 1 # Specifies the desired number of pods
+  selector:
+    matchLabels:
+      app: httpd-app
+  template:
+    metadata:
+      labels:
+        app: httpd-app
+    spec:
+      containers:
+      - name: httpd-container
+        image: httpd:latest # Uses the latest official Apache httpd Docker image
+        ports:
+        - containerPort: 80 # The port httpd listens on inside the container
