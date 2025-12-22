@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: httpd-container
-        image: httpd:latest # Uses the latest official Apache httpd Docker image
+        image: nginx:latest # Uses the latest official Apache httpd Docker image
         ports:
         - containerPort: 80 # The port httpd listens on inside the container
